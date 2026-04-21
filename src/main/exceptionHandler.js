@@ -9,6 +9,7 @@
 import { app, clipboard, crashReporter, dialog, ipcMain } from 'electron'
 import os from 'os'
 import log from 'electron-log'
+import { isIgnorablePipeError } from './exceptionPipeGuard'
 import { createAndOpenGitHubIssueUrl } from './utils/createGitHubIssue'
 
 const EXIT_ON_ERROR = !!process.env.MARKTEXT_EXIT_ON_ERROR
@@ -17,6 +18,7 @@ const ERROR_MSG_MAIN = 'An unexpected error occurred in the main process'
 const ERROR_MSG_RENDERER = 'An unexpected error occurred in the renderer process'
 
 let logger = s => console.error(s)
+let streamErrorListenersRegistered = false
 
 const getOSInformation = () => {
   return `${os.type()} ${os.arch()} ${os.release()} (${os.platform()})`
@@ -99,8 +101,24 @@ Operating system: ${getOSInformation()}`)
 }
 
 const setupExceptionHandler = () => {
+  if (!streamErrorListenersRegistered) {
+    const handleStreamError = stream => error => {
+      if (isIgnorablePipeError(error, stream)) {
+        return
+      }
+      handleError(ERROR_MSG_MAIN, error, 'main')
+    }
+
+    process.stdout.on('error', handleStreamError(process.stdout))
+    process.stderr.on('error', handleStreamError(process.stderr))
+    streamErrorListenersRegistered = true
+  }
+
   // main process error handler
   process.on('uncaughtException', error => {
+    if (isIgnorablePipeError(error)) {
+      return
+    }
     handleError(ERROR_MSG_MAIN, error, 'main')
   })
 

@@ -4,6 +4,7 @@ import { app, dialog } from 'electron'
 import { initialize as remoteInitializeServer } from '@electron/remote/main'
 import cli from './cli'
 import setupExceptionHandler, { initExceptionLogger } from './exceptionHandler'
+import { safeStdoutWrite } from './exceptionPipeGuard'
 import log from 'electron-log'
 import App from './app'
 import Accessor from './app/accessor'
@@ -23,7 +24,7 @@ const initializeLogger = appEnvironment => {
 
 // NOTE: We only support Linux, macOS and Windows but not BSD nor SunOS.
 if (!/^(darwin|win32|linux)$/i.test(process.platform)) {
-  process.stdout.write(`Operating system "${process.platform}" is not supported! Please open an issue at "https://github.com/marktext/marktext".\n`)
+  safeStdoutWrite(`Operating system "${process.platform}" is not supported! Please open an issue at "https://github.com/marktext/marktext".\n`)
   process.exit(1)
 }
 
@@ -41,7 +42,7 @@ if (args['--disable-gpu']) {
 if (!process.mas && process.env.NODE_ENV !== 'development') {
   const gotSingleInstanceLock = app.requestSingleInstanceLock()
   if (!gotSingleInstanceLock) {
-    process.stdout.write('Other MarkText instance detected: exiting...\n')
+    safeStdoutWrite('Other MarkText instance detected: exiting...\n')
     app.exit()
   }
 }

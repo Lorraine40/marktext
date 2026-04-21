@@ -3,9 +3,10 @@ import { app } from 'electron'
 import os from 'os'
 import { isDirectory } from 'common/filesystem'
 import parseArgs from './parser'
+import { safeStdoutWrite } from '../exceptionPipeGuard'
 import { getPath } from '../utils'
 
-const write = s => process.stdout.write(s)
+const write = s => safeStdoutWrite(s)
 const writeLine = s => write(s + '\n')
 
 const cli = () => {

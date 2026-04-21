@@ -12,6 +12,7 @@ import { normalizeAndResolvePath, writeFile } from '../../filesystem'
 import { writeMarkdownFile } from '../../filesystem/markdown'
 import { getPath, getRecommendTitleFromMarkdownString } from '../../utils'
 import pandoc from '../../utils/pandoc'
+import { validateSavePayload } from './saveAsGuard'
 
 // TODO(refactor): "save" and "save as" should be moved to the editor window (editor.js) and
 // the renderer should communicate only with the editor window for file relevant stuff.
@@ -207,6 +208,36 @@ const removePrintServiceFromWindow = win => {
   win.webContents.send('mt::print-service-clearup')
 }
 
+const isWebContentsAlive = webContents => {
+  return !!webContents && (typeof webContents.isDestroyed !== 'function' || !webContents.isDestroyed())
+}
+
+const isWindowAlive = win => {
+  return !!win && (typeof win.isDestroyed !== 'function' || !win.isDestroyed()) && isWebContentsAlive(win.webContents)
+}
+
+const notifySaveAsFailure = (sender, id, message) => {
+  if (!isWebContentsAlive(sender)) {
+    log.error(`Save As failed: ${message}`)
+    return
+  }
+
+  try {
+    sender.send('mt::tab-save-failure', id, message)
+  } catch (err) {
+    log.error('Error while notifying Save As failure:', err)
+  }
+}
+
+const sendToWindow = (win, channel, ...args) => {
+  if (!isWindowAlive(win)) {
+    return false
+  }
+
+  win.webContents.send(channel, ...args)
+  return true
+}
+
 // --- events -----------------------------------
 
 ipcMain.on('mt::save-tabs', (e, unsavedFiles) => {
@@ -237,47 +268,80 @@ ipcMain.on('mt::save-and-close-tabs', async (e, unsavedFiles) => {
   }
 })
 
-ipcMain.on('mt::response-file-save-as', async (e, { id, filename, markdown, pathname, options, defaultPath }) => {
-  const win = BrowserWindow.fromWebContents(e.sender)
-  let recommendFilename = getRecommendTitleFromMarkdownString(markdown)
-  if (!recommendFilename) {
-    recommendFilename = filename || 'Untitled'
-  }
+ipcMain.on('mt::response-file-save-as', async (e, payload) => {
+  const sender = e && e.sender
+  let tabId = payload && payload.id
 
-  // If the file doesn't exist on disk add it to the recently used documents later
-  // and execute file from filesystem watcher for a short time. The file may exists
-  // on disk nevertheless but is already tracked by MarkText.
-  const alreadyExistOnDisk = !!pathname
+  try {
+    const validation = validateSavePayload(payload)
+    if (!validation.valid) {
+      notifySaveAsFailure(sender, tabId, validation.reason)
+      return
+    }
 
-  let { filePath, canceled } = await dialog.showSaveDialog(win, {
-    defaultPath: pathname || path.join(defaultPath || getPath('documents'), `${recommendFilename}.md`)
-  })
+    const { id, filename, markdown, pathname, options, defaultPath } = payload
+    tabId = id
 
-  if (filePath && !canceled) {
-    filePath = path.resolve(filePath)
-    writeMarkdownFile(filePath, markdown, options, win)
-      .then(() => {
-        if (!alreadyExistOnDisk) {
-          ipcMain.emit('window-add-file-path', win.id, filePath)
-          ipcMain.emit('menu-add-recently-used', filePath)
+    if (!isWebContentsAlive(sender)) {
+      log.error('Save As failed: sender is not available.')
+      return
+    }
 
-          const filename = path.basename(filePath)
-          win.webContents.send('mt::set-pathname', { id, pathname: filePath, filename })
-        } else if (pathname !== filePath) {
-          // Update window file list and watcher.
-          ipcMain.emit('window-change-file-path', win.id, filePath, pathname)
+    const win = BrowserWindow.fromWebContents(sender)
+    if (!isWindowAlive(win)) {
+      notifySaveAsFailure(sender, id, 'Save window is not available.')
+      return
+    }
 
-          const filename = path.basename(filePath)
-          win.webContents.send('mt::set-pathname', { id, pathname: filePath, filename })
-        } else {
-          ipcMain.emit('window-file-saved', win.id, filePath)
-          win.webContents.send('mt::tab-saved', id)
-        }
+    let recommendFilename = getRecommendTitleFromMarkdownString(markdown)
+    if (!recommendFilename) {
+      recommendFilename = filename || 'Untitled'
+    }
+
+    const alreadyExistOnDisk = !!pathname
+    let dialogResult
+    try {
+      dialogResult = await dialog.showSaveDialog(win, {
+        defaultPath: pathname || path.join(defaultPath || getPath('documents'), `${recommendFilename}.md`)
       })
-      .catch(err => {
-        log.error('Error while save as:', err)
-        win.webContents.send('mt::tab-save-failure', id, err.message)
-      })
+    } catch (err) {
+      log.error('Error while showing Save As dialog:', err)
+      notifySaveAsFailure(sender, id, err.message)
+      return
+    }
+
+    const { filePath: selectedPath, canceled } = dialogResult || {}
+    if (canceled || !selectedPath) {
+      return
+    }
+
+    const filePath = path.resolve(selectedPath)
+    await writeMarkdownFile(filePath, markdown, options, win)
+
+    if (!isWindowAlive(win)) {
+      log.error('Save As completed but the window is no longer available.')
+      return
+    }
+
+    if (!alreadyExistOnDisk) {
+      ipcMain.emit('window-add-file-path', win.id, filePath)
+      ipcMain.emit('menu-add-recently-used', filePath)
+
+      const savedFilename = path.basename(filePath)
+      sendToWindow(win, 'mt::set-pathname', { id, pathname: filePath, filename: savedFilename })
+    } else if (pathname !== filePath) {
+      // Update window file list and watcher.
+      ipcMain.emit('window-change-file-path', win.id, filePath, pathname)
+
+      const savedFilename = path.basename(filePath)
+      sendToWindow(win, 'mt::set-pathname', { id, pathname: filePath, filename: savedFilename })
+    } else {
+      ipcMain.emit('window-file-saved', win.id, filePath)
+      sendToWindow(win, 'mt::tab-saved', id)
+    }
+  } catch (err) {
+    log.error('Error while save as:', err)
+    notifySaveAsFailure(sender, tabId, err.message)
   }
 })
 

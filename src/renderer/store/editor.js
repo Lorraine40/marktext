@@ -433,19 +433,40 @@ const actions = {
   // need pass some data to main process when `save as` menu item clicked
   LISTEN_FOR_SAVE_AS ({ state, rootState }) {
     ipcRenderer.on('mt::editor-ask-file-save-as', () => {
-      const { id, filename, pathname, markdown } = state.currentFile
-      const options = getOptionsFromState(state.currentFile)
-      const defaultPath = getRootFolderFromState(rootState)
-      if (id) {
-        ipcRenderer.send('mt::response-file-save-as', {
-          id,
-          filename,
-          pathname,
-          markdown,
-          options,
-          defaultPath
+      const currentFile = state.currentFile || {}
+      const { id, filename, pathname, markdown } = currentFile
+      if (typeof id !== 'string' || id.length === 0 || typeof markdown !== 'string') {
+        notice.notify({
+          title: 'Save failure',
+          message: 'Cannot save the current tab because its content is unavailable.',
+          type: 'error',
+          time: 20000,
+          showConfirm: false
         })
+        return
       }
+
+      const options = getOptionsFromState(currentFile)
+      if (!options || typeof options !== 'object' || Array.isArray(options)) {
+        notice.notify({
+          title: 'Save failure',
+          message: 'Cannot save the current tab because its save options are unavailable.',
+          type: 'error',
+          time: 20000,
+          showConfirm: false
+        })
+        return
+      }
+
+      const defaultPath = getRootFolderFromState(rootState)
+      ipcRenderer.send('mt::response-file-save-as', {
+        id,
+        filename,
+        pathname,
+        markdown,
+        options,
+        defaultPath
+      })
     })
   },
 
@@ -455,7 +476,7 @@ const actions = {
       const { pathname, id } = fileInfo
       const tab = tabs.find(f => f.id === id)
       if (!tab) {
-        console.err('[ERROR] Cannot change file path from unknown tab.')
+        console.error('[ERROR] Cannot change file path from unknown tab.')
         return
       }
 
