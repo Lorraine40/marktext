@@ -17,7 +17,7 @@
 
 <div align="center">
   <!-- Version -->
-  <a href="https://marktext.github.io/website">
+  <a href="https://github.com/marktext/marktext">
     <img src="https://badge.fury.io/gh/jocs%2Fmarktext.svg" alt="website">
   </a>
   <!-- License -->
@@ -33,11 +33,7 @@
   </a>
   <!-- Downloads total -->
   <a href="https://github.com/marktext/marktext/releases">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total download">
-  </a>
-  <!-- Downloads latest release -->
-  <a href="https://github.com/marktext/marktext/releases/latest">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/v0.17.1/total.svg" alt="latest download">
+    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total downloads">
   </a>
   <!-- sponsors -->
   <a href="https://opencollective.com/marktext">
@@ -204,17 +200,14 @@ Nomes e logotipos de empresas de todos os patrocinadores (do Patreon e do Open C
 
 | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/mac-pass-sm.png)                                                                                                  | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/windows-pass-sm.png)                                                                                                          | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/linux-pass-sm.png)                                                                                                                        |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x64.dmg.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x64.dmg) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-setup.exe.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-setup.exe) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x86_64.AppImage.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x86_64.AppImage) |
+| [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) |
 
 Quer ver os últimos recursos? Por favor consulte o [Histórico de Mudanças](.github/CHANGELOG.md).
 
 #### macOS
 
-Pode baixar o último `marktext-%version%.dmg` indo à [página de versões](https://github.com/marktext/marktext/releases/latest) ou instale o MarkText usando [**homebrew cask**](https://github.com/caskroom/homebrew-cask) (é necessário ter o [Homebrew](https://brew.sh/) instalado).
+Download macOS builds from the [release page](https://github.com/marktext/marktext/releases/latest). macOS signing and notarization warnings are tracked separately.
 
-```bash
-brew install --cask mark-text
-```
 
 #### Windows
 
