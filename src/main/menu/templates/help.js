@@ -66,14 +66,14 @@ export default function () {
     }, {
       type: 'separator'
     }, {
-      label: 'Website...',
+      label: 'Project on GitHub...',
       click () {
         shell.openExternal('https://github.com/marktext/marktext')
       }
     }, {
-      label: 'Watch on GitHub...',
+      label: 'Releases...',
       click () {
-        shell.openExternal('https://github.com/marktext/marktext')
+        shell.openExternal('https://github.com/marktext/marktext/releases/latest')
       }
     }, {
       label: 'Follow us on Github...',

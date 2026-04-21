@@ -29,11 +29,7 @@
   </a>
   <!-- Downloads total -->
   <a href="https://github.com/marktext/marktext/releases">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total download">
-  </a>
-  <!-- Downloads latest release -->
-  <a href="https://github.com/marktext/marktext/releases/latest">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/v0.17.1/total.svg" alt="latest download">
+    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total downloads">
   </a>
   <!-- sponsors -->
   <a href="https://opencollective.com/marktext">
@@ -113,7 +109,7 @@
 
 <h2 align="center">Supporting MarkText</h2>
 
-MarkText is an MIT licensed open source project, and the latest version will always be downloadable for free from the GitHub release page. MarkText is still in development, and its development is inseparable from all sponsors. I hope you join them:
+MarkText is an MIT licensed open source project, and release builds will always be downloadable for free from the GitHub release page. MarkText is still in development, and its development is inseparable from all sponsors. I hope you join them:
 
 - [Become a backer or sponsor on Patreon](https://www.patreon.com/ranluo) or [One time donation](https://github.com/Jocs/sponsor.me)
 - [Become a backer or sponsor on Open Collective](https://opencollective.com/marktext)
@@ -203,17 +199,14 @@ Names and company logos of all sponsors (from both Patreon and Open Collective) 
 
 | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/mac-pass-sm.png)                                                                                                  | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/windows-pass-sm.png)                                                                                                          | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/linux-pass-sm.png)                                                                                                                        |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x64.dmg.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x64.dmg) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-setup.exe.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-setup.exe) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x86_64.AppImage.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x86_64.AppImage) |
+| [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) |
 
-Want to see new features of the latest version? Please refer to [CHANGELOG](.github/CHANGELOG.md).
+Want to see recent changes? Please refer to [CHANGELOG](.github/CHANGELOG.md).
 
 #### macOS
 
-You can either download the latest `marktext-%version%.dmg` from the [release page](https://github.com/marktext/marktext/releases/latest) or install MarkText using [**homebrew cask**](https://github.com/caskroom/homebrew-cask). To use Homebrew-Cask you just need to have [Homebrew](https://brew.sh/) installed.
+Download the latest `marktext-%version%.dmg` from the [release page](https://github.com/marktext/marktext/releases/latest). macOS signing and notarization warnings are tracked separately.
 
-```bash
-brew install --cask mark-text
-```
 
 #### Windows
 

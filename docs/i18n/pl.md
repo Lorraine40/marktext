@@ -20,27 +20,23 @@
 
 <div align="center">
   <!-- Version -->
-  <a href="https://marktext.github.io/website">
+  <a href="https://github.com/marktext/marktext">
     <img src="https://badge.fury.io/gh/jocs%2Fmarktext.svg" alt="website">
   </a>
   <!-- License -->
-  <a href="https://marktext.github.io/website">
+  <a href="../../LICENSE">
     <img src="https://img.shields.io/github/license/marktext/marktext.svg" alt="LICENSE">
   </a>
   <!-- Build Status -->
-  <a href="https://marktext.github.io/website">
+  <a href="https://travis-ci.org/marktext/marktext/">
     <img src="https://travis-ci.org/marktext/marktext.svg?branch=master" alt="build">
   </a>
   <!-- Downloads total -->
-  <a href="https://marktext.github.io/website">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total download">
-  </a>
-  <!-- Downloads latest release -->
-  <a href="https://marktext.github.io/website">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/v0.17.1/total.svg" alt="latest download">
+  <a href="https://github.com/marktext/marktext/releases">
+    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total downloads">
   </a>
   <!-- deps -->
-  <a href="https://marktext.github.io/website">
+  <a href="https://github.com/marktext/marktext">
     <img src="https://img.shields.io/hackage-deps/v/lens.svg" alt="dependencies">
   </a>
   <!-- donates -->
@@ -51,7 +47,7 @@
 
 <div align="center">
   <h3>
-    <a href="https://marktext.github.io/website">
+    <a href="https://github.com/marktext/marktext">
       Strona
     </a>
     <span> | </span>
@@ -119,17 +115,15 @@
 
 | ![]( https://github.com/ryanoasis/nerd-fonts/wiki/screenshots/v1.0.x/mac-pass-sm.png)                                                                                                             | ![]( https://github.com/ryanoasis/nerd-fonts/wiki/screenshots/v1.0.x/windows-pass-sm.png)                                                                                                                     | ![]( https://github.com/ryanoasis/nerd-fonts/wiki/screenshots/v1.0.x/linux-pass-sm.png)                                                                                                                                   |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x64.dmg.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x64.dmg) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-setup.exe.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-setup.exe) | [![latest version](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x86_64.AppImage.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x86_64.AppImage) |
+| [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) |
 
-Nie znalazłeś swojego systemu? Przejdź do strony [release](https://github.com/marktext/marktext/releases). Wciąż nie znalazłeś? Zgłoś [problem](https://github.com/marktext/marktext/issues).
+Nie znalazłeś swojego systemu? Przejdź do strony [release](https://github.com/marktext/marktext/releases/latest). Wciąż nie znalazłeś? Zgłoś [problem](https://github.com/marktext/marktext/issues).
 
 Chciałbyś zobaczyć jak nowe udogodnienia wprowadziła najnowsza wersja? Udaj się do [CHANGELOG](../../.github/CHANGELOG.md)
 
-Jeśli używasz systemu OS X, to możesz zainstalować MarkText za pomocą [**homebrew cask**](https://github.com/caskroom/homebrew-cask). Aby zacząć korzystać z Homebrew-Cask potrzebujesz tylko [Homebrew](https://brew.sh/).
+Download macOS builds from the [release page](https://github.com/marktext/marktext/releases/latest). macOS signing and notarization warnings are tracked separately.
 
-> brew install --cask mark-text
 
-![](../../docs/brew-cask.gif)
 
 ### Rozwój
 

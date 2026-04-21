@@ -30,12 +30,9 @@
   </a>
   <!-- إجمالي التنزيلات -->
   <a href="https://github.com/marktext/marktext/releases">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total download">
+    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total downloads">
   </a>
   <!-- تنزيلات أحدث إصدار -->
-  <a href="https://github.com/marktext/marktext/releases/latest">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/v0.17.1/total.svg" alt="latest download">
-  </a>
   <!-- الرعاة -->
   <a href="https://opencollective.com/marktext">
     <img src="https://opencollective.com/marktext/tiers/silver-sponsors/badge.svg?label=SilverSponsors&color=brightgreen" alt="sponsors">
@@ -219,9 +216,9 @@ Open Collective: جميع النفقات شفافة. سيتم استخدام ا�
   <td align="center"><img src="https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/linux-pass-sm.png" alt="Linux"></td>
 </tr>
 <tr>
-  <td align="center"><a href="https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x64.dmg"><img src="https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x64.dmg.svg" alt="أحدث إصدار"></a></td>
-  <td align="center"><a href="https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-setup.exe"><img src="https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-setup.exe.svg" alt="أحدث إصدار"></a></td>
-  <td align="center"><a href="https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x86_64.AppImage"><img src="https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x86_64.AppImage.svg" alt="أحدث إصدار"></a></td>
+  <td align="center"><a href="https://github.com/marktext/marktext/releases/latest">GitHub Releases</a></td>
+  <td align="center"><a href="https://github.com/marktext/marktext/releases/latest">GitHub Releases</a></td>
+  <td align="center"><a href="https://github.com/marktext/marktext/releases/latest">GitHub Releases</a></td>
 </tr>
 </table>
 
@@ -229,9 +226,8 @@ Open Collective: جميع النفقات شفافة. سيتم استخدام ا�
 
 ### macOS
 
-يمكنك إما تنزيل أحدث إصدار `marktext-%version%.dmg` من <a href="https://github.com/marktext/marktext/releases/latest">صفحة الإصدارات</a> أو تثبيت MarkText باستخدام <a href="https://github.com/caskroom/homebrew-cask"><strong>homebrew cask</strong></a>. لاستخدام Homebrew-Cask، تحتاج فقط إلى تثبيت <a href="https://brew.sh/">Homebrew</a>.
+Download macOS builds from the [release page](https://github.com/marktext/marktext/releases/latest). macOS signing and notarization warnings are tracked separately.
 
-<pre><code>brew install --cask mark-text</code></pre>
 
 ### Windows
 

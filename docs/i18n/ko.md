@@ -17,7 +17,7 @@
 
 <div align="center">
   <!-- Version -->
-  <a href="https://marktext.github.io/website">
+  <a href="https://github.com/marktext/marktext">
     <img src="https://badge.fury.io/gh/jocs%2Fmarktext.svg" alt="website">
   </a>
   <!-- License -->
@@ -33,11 +33,7 @@
   </a>
   <!-- Downloads total -->
   <a href="https://github.com/marktext/marktext/releases">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total download">
-  </a>
-  <!-- Downloads latest release -->
-  <a href="https://github.com/marktext/marktext/releases/latest">
-    <img src="https://img.shields.io/github/downloads/marktext/marktext/v0.17.1/total.svg" alt="latest download">
+    <img src="https://img.shields.io/github/downloads/marktext/marktext/total.svg" alt="total downloads">
   </a>
   <!-- sponsors -->
   <a href="https://opencollective.com/marktext">
@@ -201,17 +197,14 @@ Open Collective: 모든 지출은 투명합니다. 후원금은 마크 텍스트
 
 | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/mac-pass-sm.png)                                                                                                  | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/windows-pass-sm.png)                                                                                                          | ![](https://raw.githubusercontent.com/wiki/ryanoasis/nerd-fonts/screenshots/v1.0.x/linux-pass-sm.png)                                                                                                                        |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![최신 버전](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x64.dmg.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x64.dmg) | [![최신 버전](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-setup.exe.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-setup.exe) | [![최신 버전](https://img.shields.io/github/downloads/marktext/marktext/latest/marktext-x86_64.AppImage.svg)](https://github.com/marktext/marktext/releases/download/v0.17.1/marktext-x86_64.AppImage) |
+| [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) | [GitHub Releases](https://github.com/marktext/marktext/releases/latest) |
 
 최신 버전의 새로운 기능을 보고 싶나요? [변경사항](.github/CHANGELOG.md)을 참조하세요.
 
 #### 맥OS
 
-최신 `marktext-%version%.dmg`를 [릴리즈 페이지](https://github.com/marktext/marktext/releases/latest)에서 다운로드하거나 [**homebrew cask**](https://github.com/caskroom/homebrew-cask)를 이용하여 설치할 수 있습니다. Homebrew-Cask를 이용하려면 [Homebrew](https://brew.sh/)가 설치되어 있어야 합니다.
+Download macOS builds from the [release page](https://github.com/marktext/marktext/releases/latest). macOS signing and notarization warnings are tracked separately.
 
-```bash
-brew install --cask mark-text
-```
 
 #### 윈도우
 
