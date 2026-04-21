@@ -66,7 +66,18 @@ jobs:
       - name: Install dependencies
         # Windows worker fail sometimes because a module cannot be found.
         # if: ${{ steps.cacheNodeModules.outputs.cache-hit != 'true' }}
-        run: yarn install --check-files --frozen-lockfile
+        run: yarn install --ignore-scripts --check-files --frozen-lockfile
+
+      - name: Run postinstall patching
+        run: node .electron-vue/postinstall.js
+
+      - name: Rebuild native modules
+        run: yarn run rebuild
+        env:
+          DEBUG: electron-rebuild
+
+      - name: Run postinstall lint fix
+        run: yarn run lint:fix
 
       - name: Lint
         run: |
