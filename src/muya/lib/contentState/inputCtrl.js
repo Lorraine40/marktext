@@ -101,10 +101,17 @@ const inputCtrl = ContentState => {
       return
     }
 
-    const { start: oldStart, end: oldEnd } = this.cursor
+    const { start: oldStart, end: oldEnd } = this.cursor || {}
+    if (!oldStart || !oldEnd) {
+      return
+    }
+
     const key = start.key
     const block = this.getBlock(key)
     const paragraph = document.querySelector(`#${key}`)
+    if (!block || !paragraph) {
+      return
+    }
 
     // Fix issue 1447
     // Fixme: any better solution?
@@ -132,8 +139,12 @@ const inputCtrl = ContentState => {
     let needRenderAll = false
     if (oldStart.key !== oldEnd.key) {
       const startBlock = this.getBlock(oldStart.key)
-      const startOutmostBlock = this.findOutMostBlock(startBlock)
       const endBlock = this.getBlock(oldEnd.key)
+      if (!startBlock || !endBlock) {
+        return
+      }
+
+      const startOutmostBlock = this.findOutMostBlock(startBlock)
       const endOutmostBlock = this.findOutMostBlock(endBlock)
       if (startBlock.functionType === 'languageInput') {
         // fix #918.

@@ -19,6 +19,48 @@ const filterOnlyParentElements = node => {
   return isBlockContainer(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
 }
 
+const createNullCursor = () => new Cursor({
+  start: null,
+  end: null,
+  anchor: null,
+  focus: null
+})
+
+const getPointMaxOffset = node => {
+  if (!node) {
+    return null
+  }
+  switch (node.nodeType) {
+    case 3: // Text
+    case 8: // Comment
+      return node.length
+    case 1: // Element
+      return node.childNodes.length
+    default:
+      return null
+  }
+}
+
+const normalizeRangePoint = (node, offset) => {
+  const maxOffset = getPointMaxOffset(node)
+  if (maxOffset === null || typeof offset !== 'number' || !Number.isFinite(offset)) {
+    return null
+  }
+
+  return {
+    node,
+    offset: Math.min(Math.max(0, Math.floor(offset)), maxOffset)
+  }
+}
+
+const querySelectorById = key => {
+  try {
+    return document.querySelector(`#${key}`)
+  } catch (err) {
+    return null
+  }
+}
+
 class Selection {
   constructor (doc) {
     this.doc = doc // document
@@ -342,20 +384,44 @@ class Selection {
   }
 
   select (startNode, startOffset, endNode, endOffset) {
-    const range = this.doc.createRange()
-    range.setStart(startNode, startOffset)
-    if (endNode) {
-      range.setEnd(endNode, endOffset)
-    } else {
-      range.collapse(true)
+    const start = normalizeRangePoint(startNode, startOffset)
+    if (!start) {
+      return null
+    }
+    const end = endNode ? normalizeRangePoint(endNode, endOffset) : null
+    if (endNode && !end) {
+      return null
+    }
+
+    let range
+    try {
+      range = this.doc.createRange()
+      range.setStart(start.node, start.offset)
+      if (end) {
+        range.setEnd(end.node, end.offset)
+      } else {
+        range.collapse(true)
+      }
+    } catch (err) {
+      return null
     }
     this.selectRange(range)
     return range
   }
 
   setFocus (focusNode, focusOffset) {
+    const focus = normalizeRangePoint(focusNode, focusOffset)
+    if (!focus) {
+      return false
+    }
+
     const selection = this.doc.getSelection()
-    selection.extend(focusNode, focusOffset)
+    try {
+      selection.extend(focus.node, focus.offset)
+    } catch (err) {
+      return false
+    }
+    return true
   }
 
   /**
@@ -409,10 +475,27 @@ class Selection {
   }
 
   setCursorRange (cursorRange) {
+    if (
+      !cursorRange ||
+      !cursorRange.anchor ||
+      !cursorRange.focus ||
+      !cursorRange.anchor.key ||
+      !cursorRange.focus.key
+    ) {
+      return false
+    }
+
     const { anchor, focus } = cursorRange
-    const anchorParagraph = document.querySelector(`#${anchor.key}`)
-    const focusParagraph = document.querySelector(`#${focus.key}`)
+    const anchorParagraph = querySelectorById(anchor.key)
+    const focusParagraph = querySelectorById(focus.key)
+    if (!anchorParagraph || !focusParagraph) {
+      return false
+    }
+
     const getNodeAndOffset = (node, offset) => {
+      if (!node) {
+        return null
+      }
       if (node.nodeType === 3) {
         return {
           node,
@@ -438,6 +521,9 @@ class Selection {
             child.classList && child.classList.contains('ag-inline-image')
           ) {
             const imageContainer = child.querySelector('.ag-image-container')
+            if (!imageContainer) {
+              return null
+            }
             const hasImg = imageContainer.querySelector('img')
 
             if (!hasImg) {
@@ -479,31 +565,58 @@ class Selection {
       return { node, offset }
     }
 
-    let { node: anchorNode, offset: anchorOffset } = getNodeAndOffset(anchorParagraph, anchor.offset)
-    let { node: focusNode, offset: focusOffset } = getNodeAndOffset(focusParagraph, focus.offset)
-
-    if (anchorNode.nodeType === 3 || anchorNode.nodeType === 1 && !anchorNode.classList.contains('ag-image-container')) {
-      anchorOffset = Math.min(anchorOffset, anchorNode.textContent.length)
-      focusOffset = Math.min(focusOffset, focusNode.textContent.length)
+    const anchorPoint = getNodeAndOffset(anchorParagraph, anchor.offset)
+    const focusPoint = getNodeAndOffset(focusParagraph, focus.offset)
+    if (!anchorPoint || !focusPoint) {
+      return false
     }
 
+    const normalizedAnchor = normalizeRangePoint(anchorPoint.node, anchorPoint.offset)
+    const normalizedFocus = normalizeRangePoint(focusPoint.node, focusPoint.offset)
+    if (!normalizedAnchor || !normalizedFocus) {
+      return false
+    }
+
+    const selection = this.doc.getSelection()
+    const ranges = []
+    for (let i = 0; i < selection.rangeCount; i++) {
+      ranges.push(selection.getRangeAt(i).cloneRange())
+    }
     // First set the anchor node and anchor offset, make it collapsed
-    this.select(anchorNode, anchorOffset)
+    const range = this.select(normalizedAnchor.node, normalizedAnchor.offset)
+    if (!range) {
+      return false
+    }
     // Secondly, set the focus node and focus offset.
-    this.setFocus(focusNode, focusOffset)
+    if (!this.setFocus(normalizedFocus.node, normalizedFocus.offset)) {
+      selection.removeAllRanges()
+      ranges.forEach(range => selection.addRange(range))
+      return false
+    }
+
+    return true
   }
 
   isValidCursorNode (node) {
     if (!node) return false
-    if (node.nodeType === 3) {
+    if (node.nodeType === 3 || node.nodeType === 8) {
       node = node.parentNode
+    }
+
+    if (!node || node.nodeType !== 1 || !node.closest) {
+      return false
     }
 
     return node.closest('span.ag-paragraph')
   }
 
   getCursorRange () {
-    let { anchorNode, anchorOffset, focusNode, focusOffset } = this.doc.getSelection()
+    const selection = this.doc.getSelection()
+    if (!selection || selection.rangeCount === 0) {
+      return createNullCursor()
+    }
+
+    let { anchorNode, anchorOffset, focusNode, focusOffset } = selection
     const isAnchorValid = this.isValidCursorNode(anchorNode)
     const isFocusValid = this.isValidCursorNode(focusNode)
     let needFix = false
@@ -516,15 +629,12 @@ class Selection {
       focusNode = anchorNode
       focusOffset = anchorOffset
     } else if (!isAnchorValid && !isFocusValid) {
-      const editor = document.querySelector('#ag-editor-id').parentNode
-      editor.blur()
+      const editor = document.querySelector('#ag-editor-id')
+      if (editor && editor.parentNode) {
+        editor.parentNode.blur()
+      }
 
-      return new Cursor({
-        start: null,
-        end: null,
-        anchor: null,
-        focus: null
-      })
+      return createNullCursor()
     }
 
     // fix bug click empty line, the cursor will jump to the end of pre line.
@@ -539,6 +649,9 @@ class Selection {
 
     const anchorParagraph = findNearestParagraph(anchorNode)
     const focusParagraph = findNearestParagraph(focusNode)
+    if (!anchorParagraph || !focusParagraph) {
+      return createNullCursor()
+    }
 
     let aOffset = getOffsetOfParagraph(anchorNode, anchorParagraph) + anchorOffset
     let fOffset = getOffsetOfParagraph(focusNode, focusParagraph) + focusOffset
@@ -547,11 +660,16 @@ class Selection {
     if (
       anchorNode === focusNode &&
       anchorOffset === focusOffset &&
+      anchorNode.parentNode &&
+      anchorNode.parentNode.classList &&
       anchorNode.parentNode.classList.contains('ag-image-container') &&
       anchorNode.previousElementSibling &&
       anchorNode.previousElementSibling.nodeName === 'IMG'
     ) {
       const imageWrapper = anchorNode.parentNode.parentNode
+      if (!imageWrapper) {
+        return createNullCursor()
+      }
       const preElement = imageWrapper.previousElementSibling
       aOffset = 0
       if (preElement) {
@@ -565,9 +683,13 @@ class Selection {
     if (
       anchorNode === focusNode &&
       anchorNode.nodeType === 1 &&
+      anchorNode.classList &&
       anchorNode.classList.contains('ag-image-container')
     ) {
       const imageWrapper = anchorNode.parentNode
+      if (!imageWrapper) {
+        return createNullCursor()
+      }
       const preElement = imageWrapper.previousElementSibling
       aOffset = 0
       if (preElement) {

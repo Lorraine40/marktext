@@ -246,7 +246,11 @@ const pasteCtrl = ContentState => {
     }
 
     if (this.selectedTableCells) {
-      const { start } = this.cursor
+      const { start } = this.cursor || {}
+      if (!start) {
+        return
+      }
+
       const startBlock = this.getBlock(start.key)
       const { selectedTableCells: stc } = this
 
@@ -276,9 +280,17 @@ const pasteCtrl = ContentState => {
     html = await this.standardizeHTML(html)
 
     let copyType = this.checkCopyType(html, text)
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     const parent = this.getParent(startBlock)
 
     if (copyType === 'htmlToMd') {

@@ -8,7 +8,15 @@ const backspaceCtrl = ContentState => {
     const node = selection.getSelectionStart()
     const paragraph = findNearestParagraph(node)
     const outMostParagraph = findOutMostParagraph(node)
+    if (!paragraph || !outMostParagraph) {
+      return null
+    }
+
     let block = this.getBlock(paragraph.id)
+    if (!block) {
+      return null
+    }
+
     if (block.type === 'span' && block.preSibling) {
       return false
     }
@@ -141,6 +149,14 @@ const backspaceCtrl = ContentState => {
 
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+    const { start: currentStart, end: currentEnd } = this.cursor || {}
+    if (!currentStart || !currentEnd) {
+      return
+    }
+
     const maybeLastRow = this.getParent(endBlock)
     const startOutmostBlock = this.findOutMostBlock(startBlock)
     const endOutmostBlock = this.findOutMostBlock(endBlock)
@@ -210,7 +226,7 @@ const backspaceCtrl = ContentState => {
     // 1. one paragraph bollow table, selectAll, press backspace.
     // 2. select table from the first cell to the last cell, press backsapce.
     const maybeCell = this.getParent(startBlock)
-    if (/th/.test(maybeCell.type) && start.offset === 0 && !maybeCell.preSibling) {
+    if (maybeCell && /th/.test(maybeCell.type) && start.offset === 0 && !maybeCell.preSibling) {
       if (
         end.offset === endBlock.text.length &&
         startOutmostBlock === endOutmostBlock &&
@@ -241,9 +257,9 @@ const backspaceCtrl = ContentState => {
     // Fixed #1456 existed bugs `Select one cell and press backspace will cause bug`
     if (
       startBlock.functionType === 'cellContent' &&
-      this.cursor.start.offset === 0 &&
-      this.cursor.end.offset !== 0 &&
-      this.cursor.end.offset === startBlock.text.length
+      currentStart.offset === 0 &&
+      currentEnd.offset !== 0 &&
+      currentEnd.offset === startBlock.text.length
     ) {
       event.preventDefault()
       event.stopPropagation()
@@ -263,9 +279,9 @@ const backspaceCtrl = ContentState => {
     if (
       startBlock.functionType === 'codeContent' &&
       startBlock.key === endBlock.key &&
-      this.cursor.start.offset === this.cursor.end.offset &&
+      currentStart.offset === currentEnd.offset &&
       (/\n.$/.test(startBlock.text) || startBlock.text === '\n') &&
-      startBlock.text.length === this.cursor.start.offset
+      startBlock.text.length === currentStart.offset
     ) {
       event.preventDefault()
       event.stopPropagation()
@@ -290,8 +306,16 @@ const backspaceCtrl = ContentState => {
     const node = selection.getSelectionStart()
     const parentNode = node && node.nodeType === 1 ? node.parentNode : null
     const paragraph = findNearestParagraph(node)
+    if (!paragraph) {
+      return
+    }
+
     const id = paragraph.id
     let block = this.getBlock(id)
+    if (!block) {
+      return
+    }
+
     let parent = this.getBlock(block.parent)
     const preBlock = this.findPreBlockInLocation(block)
     const { left, right } = selection.getCaretOffsets(paragraph)
@@ -321,7 +345,7 @@ const backspaceCtrl = ContentState => {
     }
 
     // handle backspace when cursor at the end of inline image.
-    if (node.classList.contains('ag-image-container')) {
+    if (node && node.classList && node.classList.contains('ag-image-container')) {
       const imageWrapper = node.parentNode
       const imageInfo = getImageInfo(imageWrapper)
       if (start.offset === imageInfo.token.range.end) {

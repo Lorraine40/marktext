@@ -2,8 +2,16 @@ import { tokenizer, generator } from '../parser/'
 
 const emojiCtrl = ContentState => {
   ContentState.prototype.setEmoji = function (item) {
+    if (!this.cursor || !this.cursor.start) {
+      return
+    }
+
     let { key, offset } = this.cursor.start
     const startBlock = this.getBlock(key)
+    if (!startBlock) {
+      return
+    }
+
     const { text } = startBlock
     const tokens = tokenizer(text, {
       options: this.muya.options

@@ -41,12 +41,20 @@ const tableBlockCtrl = ContentState => {
   }
 
   ContentState.prototype.createFigure = function ({ rows, columns }) {
-    const { end } = this.cursor
+    const { end } = this.cursor || {}
+    if (!end) {
+      return
+    }
+
     const table = this.createTableInFigure({ rows, columns })
     const figureBlock = this.createBlock('figure', {
       functionType: 'table'
     })
     const endBlock = this.getBlock(end.key)
+    if (!endBlock) {
+      return
+    }
+
     const anchor = this.getAnchor(endBlock)
 
     if (!anchor) {
@@ -108,9 +116,22 @@ const tableBlockCtrl = ContentState => {
   }
 
   ContentState.prototype.tableToolBarClick = function (type) {
-    const { start: { key } } = this.cursor
+    const { start } = this.cursor || {}
+    if (!start) {
+      return
+    }
+
+    const { key } = start
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     const parentBlock = this.getParent(block)
+    if (!parentBlock) {
+      return
+    }
+
     if (block.functionType !== 'cellContent') {
       throw new Error('table is not active')
     }
@@ -243,12 +264,20 @@ const tableBlockCtrl = ContentState => {
     if (cellContentKey) {
       block = this.getBlock(cellContentKey)
     } else {
+      if (!this.cursor || !this.cursor.start || !this.cursor.end) {
+        return
+      }
+
       ({ start, end } = this.cursor)
       if (start.key !== end.key) {
         throw new Error('Cursor is not in one block, can not editTable')
       }
 
       block = this.getBlock(start.key)
+    }
+
+    if (!block) {
+      return
     }
 
     if (block.functionType !== 'cellContent') {
@@ -389,9 +418,17 @@ const tableBlockCtrl = ContentState => {
   }
 
   ContentState.prototype.getTableBlock = function () {
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     const startParents = this.getParents(startBlock)
     const endParents = this.getParents(endBlock)
     const affiliation = startParents
@@ -404,6 +441,10 @@ const tableBlockCtrl = ContentState => {
   }
 
   ContentState.prototype.tableBlockUpdate = function (block) {
+    if (!block) {
+      return false
+    }
+
     const { type } = block
     if (type !== 'p') return false
     const { text } = block.children[0]

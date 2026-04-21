@@ -19,6 +19,10 @@ export const getTextContent = (node, blackList) => {
   if (node.nodeType === 1 && node.classList.contains('ag-inline-image')) {
     const raw = node.getAttribute('data-raw')
     const imageContainer = node.querySelector('.ag-image-container')
+    if (!imageContainer) {
+      return text + (raw || '')
+    }
+
     const hasImg = imageContainer.querySelector('img')
     const childNodes = imageContainer.childNodes
     if (childNodes.length && hasImg) {
@@ -31,7 +35,7 @@ export const getTextContent = (node, blackList) => {
       }
       return text
     }
-    return text + raw
+    return text + (raw || '')
   }
 
   const childNodes = node.childNodes

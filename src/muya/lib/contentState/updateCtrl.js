@@ -15,6 +15,24 @@ const INLINE_UPDATE_FRAGMENTS = [
 
 const INLINE_UPDATE_REG = new RegExp(INLINE_UPDATE_FRAGMENTS.join('|'), 'i')
 
+const getValidCursorRange = contentState => {
+  const { start, end } = contentState.cursor || {}
+  if (
+    !start ||
+    !end ||
+    !start.key ||
+    !end.key ||
+    typeof start.offset !== 'number' ||
+    typeof end.offset !== 'number' ||
+    !contentState.getBlock(start.key) ||
+    !contentState.getBlock(end.key)
+  ) {
+    return null
+  }
+
+  return { start, end }
+}
+
 const updateCtrl = ContentState => {
   ContentState.prototype.checkSameMarkerOrDelimiter = function (list, markerOrDelimiter) {
     if (!/ol|ul/.test(list.type)) return false
@@ -22,12 +40,26 @@ const updateCtrl = ContentState => {
   }
 
   ContentState.prototype.checkNeedRender = function (cursor = this.cursor) {
+    if (!cursor) {
+      return false
+    }
+
     const { labels } = this.stateRender
     const { start: cStart, end: cEnd, anchor, focus } = cursor
-    const startBlock = this.getBlock(cStart ? cStart.key : anchor.key)
-    const endBlock = this.getBlock(cEnd ? cEnd.key : focus.key)
-    const startOffset = cStart ? cStart.offset : anchor.offset
-    const endOffset = cEnd ? cEnd.offset : focus.offset
+    const start = cStart || anchor
+    const end = cEnd || focus
+    if (!start || !end || !start.key || !end.key || typeof start.offset !== 'number' || typeof end.offset !== 'number') {
+      return false
+    }
+
+    const startBlock = this.getBlock(start.key)
+    const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return false
+    }
+
+    const startOffset = start.offset
+    const endOffset = end.offset
     const NO_NEED_TOKEN_REG = /text|hard_line_break|soft_line_break/
 
     for (const token of tokenizer(startBlock.text, {
@@ -64,6 +96,11 @@ const updateCtrl = ContentState => {
    * block must be span block.
    */
   ContentState.prototype.checkInlineUpdate = function (block) {
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return false
+    }
+
     // table cell can not have blocks in it
     if (/figure/.test(block.type)) {
       return false
@@ -124,6 +161,11 @@ const updateCtrl = ContentState => {
   ContentState.prototype.updateThematicBreak = function (block, marker, line) {
     // If the block is already thematic break, no need to update.
     if (block.type === 'hr') return null
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const text = line.text
     const lines = text.split('\n')
     const preParagraphLines = []
@@ -160,7 +202,7 @@ const updateCtrl = ContentState => {
     }
 
     this.removeBlock(block)
-    const { start, end } = this.cursor
+    const { start, end } = cursor
     const key = thematicBlock.children[0].key
     const preParagraphLength = preParagraphLines.reduce((acc, i) => acc + i.length + 1, 0) // Add one, because the `\n`
     const startOffset = start.offset - preParagraphLength
@@ -173,10 +215,15 @@ const updateCtrl = ContentState => {
   }
 
   ContentState.prototype.updateList = function (block, type, marker = '', line) {
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const cleanMarker = marker ? marker.trim() : null
     const { preferLooseListItem } = this.muya.options
     const wrapperTag = type === 'order' ? 'ol' : 'ul' // `bullet` => `ul` and `order` => `ol`
-    const { start, end } = this.cursor
+    const { start, end } = cursor
     const startOffset = start.offset
     const endOffset = end.offset
     const newListItemBlock = this.createBlock('li')
@@ -302,14 +349,23 @@ const updateCtrl = ContentState => {
   }
 
   ContentState.prototype.updateTaskListItem = function (block, type, marker = '') {
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const { preferLooseListItem } = this.muya.options
     const parent = this.getParent(block)
     const grandpa = this.getParent(parent)
+    if (!parent || !grandpa || !block.children || !block.children[0]) {
+      return null
+    }
+
     const checked = /\[x\]\s/i.test(marker) // use `i` flag to ignore upper case or lower case
     const checkbox = this.createBlock('input', {
       checked
     })
-    const { start, end } = this.cursor
+    const { start, end } = cursor
 
     this.insertBefore(checkbox, block)
     block.children[0].text = block.children[0].text.substring(marker.length)
@@ -374,6 +430,11 @@ const updateCtrl = ContentState => {
     if (block.type === newType && block.headingStyle === headingStyle) {
       return null
     }
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const text = line.text
     const lines = text.split('\n')
     const preParagraphLines = []
@@ -412,7 +473,7 @@ const updateCtrl = ContentState => {
 
     this.removeBlock(block)
 
-    const { start, end } = this.cursor
+    const { start, end } = cursor
     const key = atxBlock.children[0].key
     this.cursor = {
       start: { key, offset: start.offset },
@@ -474,6 +535,11 @@ const updateCtrl = ContentState => {
   }
 
   ContentState.prototype.updateBlockQuote = function (block, line) {
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const text = line.text
     const lines = text.split('\n')
     const preParagraphLines = []
@@ -519,7 +585,7 @@ const updateCtrl = ContentState => {
     this.removeBlock(block)
 
     const key = quoteParagraphBlock.children[0].key
-    const { start, end } = this.cursor
+    const { start, end } = cursor
 
     this.cursor = {
       start: { key, offset: Math.max(0, start.offset - 1) },
@@ -529,6 +595,11 @@ const updateCtrl = ContentState => {
   }
 
   ContentState.prototype.updateIndentCode = function (block, line) {
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
+
     const lang = ''
     const codeBlock = this.createBlock('code', {
       lang
@@ -578,7 +649,7 @@ const updateCtrl = ContentState => {
     }
 
     const key = codeBlock.children[0].key
-    const { start, end } = this.cursor
+    const { start, end } = cursor
     this.cursor = {
       start: { key, offset: start.offset - 4 },
       end: { key, offset: end.offset - 4 }
@@ -590,13 +661,17 @@ const updateCtrl = ContentState => {
     if (/^h\d$/.test(block.type) && block.headingStyle === 'setext') {
       return null
     }
+    const cursor = getValidCursorRange(this)
+    if (!cursor) {
+      return null
+    }
 
     const newType = 'p'
     if (block.type !== newType) {
       const newBlock = this.createBlockP(line.text)
       this.insertBefore(newBlock, block)
       this.removeBlock(block)
-      const { start, end } = this.cursor
+      const { start, end } = cursor
       const key = newBlock.children[0].key
       this.cursor = {
         start: { key, offset: start.offset },

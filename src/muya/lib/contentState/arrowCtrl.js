@@ -65,6 +65,9 @@ const arrowCtrl = ContentState => {
       event.preventDefault()
       event.stopPropagation()
       const block = this.getBlock(key)
+      if (!block) {
+        return
+      }
       switch (event.key) {
         case EVENT_KEYS.ArrowUp:
         case EVENT_KEYS.ArrowLeft: {
@@ -91,15 +94,23 @@ const arrowCtrl = ContentState => {
   ContentState.prototype.arrowHandler = function (event) {
     const node = selection.getSelectionStart()
     const paragraph = findNearestParagraph(node)
+    if (!paragraph) {
+      return
+    }
+
     const id = paragraph.id
     const block = this.getBlock(id)
+    if (!block) {
+      return
+    }
+
     const preBlock = this.findPreBlockInLocation(block)
     const nextBlock = this.findNextBlockInLocation(block)
     const { start, end } = selection.getCursorRange()
-    const { topOffset, bottomOffset } = selection.getCursorYOffset(paragraph)
     if (!start || !end) {
       return
     }
+    const { topOffset, bottomOffset } = selection.getCursorYOffset(paragraph)
 
     // fix #101
     if (event.key === EVENT_KEYS.ArrowRight && node && node.classList && node.classList.contains(CLASS_OR_ID.AG_MATH_TEXT)) {
