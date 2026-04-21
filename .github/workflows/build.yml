@@ -76,6 +76,9 @@ jobs:
         # if: ${{ steps.cacheNodeModules.outputs.cache-hit != 'true' }}
         run: yarn install --ignore-scripts --check-files --frozen-lockfile
 
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+
       - name: Run postinstall patching
         run: node .electron-vue/postinstall.js
 
