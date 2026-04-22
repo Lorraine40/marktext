@@ -9,6 +9,7 @@ import { updateFormatMenu } from '../menu/actions/format'
 import { updateSelectionMenus } from '../menu/actions/paragraph'
 import { viewLayoutChanged } from '../menu/actions/view'
 import configureMenu, { configSettingMenu } from '../menu/templates'
+import { stripAcceleratorsFromTemplate } from './templateGuard'
 
 const RECENTLY_USED_DOCUMENTS_FILE_NAME = 'recently-used-documents.json'
 const MAX_RECENTLY_USED_DOCUMENTS = 12
@@ -149,13 +150,25 @@ class AppMenu {
 
     // Set source-code editor if preferred.
     const sourceCodeModeMenuItem = menu.getMenuItemById('sourceCodeModeMenuItem')
-    sourceCodeModeMenuItem.checked = isSourceMode
+    if (sourceCodeModeMenuItem) {
+      sourceCodeModeMenuItem.checked = isSourceMode
+    } else {
+      log.error('addEditorMenu: Cannot find sourceCodeModeMenuItem.')
+    }
 
     if (isSourceMode) {
       const typewriterModeMenuItem = menu.getMenuItemById('typewriterModeMenuItem')
       const focusModeMenuItem = menu.getMenuItemById('focusModeMenuItem')
-      typewriterModeMenuItem.enabled = false
-      focusModeMenuItem.enabled = false
+      if (typewriterModeMenuItem) {
+        typewriterModeMenuItem.enabled = false
+      } else {
+        log.error('addEditorMenu: Cannot find typewriterModeMenuItem.')
+      }
+      if (focusModeMenuItem) {
+        focusModeMenuItem.enabled = false
+      } else {
+        log.error('addEditorMenu: Cannot find focusModeMenuItem.')
+      }
     }
 
     const { _keybindings } = this
@@ -342,14 +355,14 @@ class AppMenu {
     }
 
     const menuTemplate = configureMenu(this._keybindings, this._preferences, recentUsedDocuments)
-    const menu = Menu.buildFromTemplate(menuTemplate)
+    const menu = buildMenuFromTemplateWithFallback(menuTemplate, 'editor')
     return { menu, type: MenuType.EDITOR }
   }
 
   _buildSettingMenu () {
     if (isOsx) {
       const menuTemplate = configSettingMenu(this._keybindings)
-      const menu = Menu.buildFromTemplate(menuTemplate)
+      const menu = buildMenuFromTemplateWithFallback(menuTemplate, 'settings')
       return { menu, type: MenuType.SETTINGS }
     }
     return { menu: null, type: MenuType.SETTINGS }
@@ -420,9 +433,28 @@ class AppMenu {
 }
 
 const updateMenuItem = (oldMenus, newMenus, id) => {
+  if (!oldMenus || !newMenus) {
+    log.error(`updateMenuItem: Cannot update "${id}" because a menu is missing.`)
+    return
+  }
+
   const oldItem = oldMenus.getMenuItemById(id)
   const newItem = newMenus.getMenuItemById(id)
+  if (!oldItem || !newItem) {
+    log.error(`updateMenuItem: Cannot update missing menu item "${id}".`)
+    return
+  }
+
   newItem.checked = oldItem.checked
+}
+
+const buildMenuFromTemplateWithFallback = (template, label) => {
+  try {
+    return Menu.buildFromTemplate(template)
+  } catch (err) {
+    log.error(`Failed to build ${label} menu. Retrying without accelerators.`, err)
+    return Menu.buildFromTemplate(stripAcceleratorsFromTemplate(template))
+  }
 }
 
 // ----------------------------------------------
@@ -438,6 +470,9 @@ const updateMenuItem = (oldMenus, newMenus, id) => {
  */
 export const getMenuItemById = menuId => {
   const menus = Menu.getApplicationMenu()
+  if (!menus) {
+    return null
+  }
   return menus.getMenuItemById(menuId)
 }
 

@@ -3,11 +3,12 @@ import fs from 'fs'
 import fsPromises from 'fs/promises'
 import path from 'path'
 import log from 'electron-log'
-import { electronLocalshortcut, isValidElectronAccelerator } from '@hfelix/electron-localshortcut'
+import { electronLocalshortcut } from '@hfelix/electron-localshortcut'
 import { isFile2 } from 'common/filesystem'
 import { isEqualAccelerator } from 'common/keybinding'
 import { isLinux, isOsx } from '../config'
 import { getKeyboardInfo, keyboardLayoutMonitor } from '../keyboard'
+import { normalizeMenuAccelerator } from './accelerator'
 import keybindingsDarwin from './keybindingsDarwin'
 import keybindingsLinux from './keybindingsLinux'
 import keybindingsWindows from './keybindingsWindows'
@@ -39,11 +40,7 @@ class Keybindings {
   }
 
   getAccelerator (id) {
-    const name = this.keys.get(id)
-    if (!name) {
-      return null
-    }
-    return name
+    return normalizeMenuAccelerator(this.keys.get(id))
   }
 
   registerAccelerator (win, accelerator, callback) {
@@ -165,7 +162,7 @@ class Keybindings {
           if (value.length === 0) {
             // Unset key
             userAccelerators.set(key, '')
-          } else if (isValidElectronAccelerator(value)) {
+          } else if (normalizeMenuAccelerator(value)) {
             userAccelerators.set(key, value)
           } else {
             console.error(`[WARNING] "${value}" is not a valid accelerator.`)
