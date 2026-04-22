@@ -33,9 +33,18 @@ jobs:
           cache: yarn
           cache-dependency-path: yarn.lock
 
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          check-latest: true
+
       # Workaround: Fix native build failure due to outdated node-gyp version.
+      # Pin to a Node 16-compatible release instead of @latest.
       - name: Fix node-gyp
         run: |
+          python --version
+          npm config set python "$env:pythonLocation\python.exe"
           npm install --global node-gyp@10.3.1
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
           node-gyp install
@@ -65,7 +74,21 @@ jobs:
       - name: Install dependencies
         # Windows worker fail sometimes because a module cannot be found.
         # if: ${{ steps.cacheNodeModules.outputs.cache-hit != 'true' }}
-        run: yarn install --check-files --frozen-lockfile
+        run: yarn install --ignore-scripts --check-files --frozen-lockfile
+
+      - name: Install Electron binary
+        run: node node_modules/electron/install.js
+
+      - name: Run postinstall patching
+        run: node .electron-vue/postinstall.js
+
+      - name: Rebuild native modules
+        run: yarn run rebuild
+        env:
+          DEBUG: electron-rebuild
+
+      - name: Run postinstall lint fix
+        run: yarn run lint:fix
 
       - name: Lint
         run: |
