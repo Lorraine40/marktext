@@ -270,6 +270,10 @@ const tableDragBarCtrl = ContentState => {
   ContentState.prototype.switchTableData = function () {
     const { barType, index, curIndex, tableId, offset } = this.dragInfo
     const table = this.getBlock(tableId)
+    if (!table || !this.cursor || !this.cursor.start || !this.cursor.end) {
+      return
+    }
+
     const tHead = table.children[0]
     const tBody = table.children[1]
     const rows = [tHead.children[0], ...(tBody ? tBody.children : [])]

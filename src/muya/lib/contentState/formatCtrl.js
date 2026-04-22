@@ -144,12 +144,18 @@ const checkTokenIsInlineFormat = token => {
 }
 
 const formatCtrl = ContentState => {
-  ContentState.prototype.selectionFormats = function ({ start, end } = selection.getCursorRange()) {
+  ContentState.prototype.selectionFormats = function (cursor = selection.getCursorRange()) {
+    const { start, end } = cursor || {}
     if (!start || !end) {
       return { formats: [], tokens: [], neighbors: [] }
     }
 
     const startBlock = this.getBlock(start.key)
+    const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return { formats: [], tokens: [], neighbors: [] }
+    }
+
     const formats = []
     const neighbors = []
     let tokens = []
@@ -185,8 +191,12 @@ const formatCtrl = ContentState => {
     return { formats, tokens, neighbors }
   }
 
-  ContentState.prototype.clearBlockFormat = function (block, { start, end } = selection.getCursorRange(), type) {
+  ContentState.prototype.clearBlockFormat = function (block, cursor = selection.getCursorRange(), type) {
+    const { start, end } = cursor || {}
     if (!start || !end) {
+      return
+    }
+    if (!block) {
       return
     }
     if (block.type === 'pre') return false
@@ -241,6 +251,10 @@ const formatCtrl = ContentState => {
 
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     start.delata = end.delata = 0
     if (start.key === end.key) {
       const { formats, tokens, neighbors } = this.selectionFormats()

@@ -204,15 +204,29 @@ class ContentState {
   }
 
   setCursor () {
-    selection.setCursorRange(this.cursor)
+    return selection.setCursorRange(this.cursor)
   }
 
   setNextRenderRange () {
+    if (!this.cursor || !this.cursor.start || !this.cursor.end) {
+      this.renderRange = [null, null]
+      return
+    }
+
     const { start, end } = this.cursor
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      this.renderRange = [null, null]
+      return
+    }
+
     const startOutMostBlock = this.findOutMostBlock(startBlock)
     const endOutMostBlock = this.findOutMostBlock(endBlock)
+    if (!startOutMostBlock || !endOutMostBlock) {
+      this.renderRange = [null, null]
+      return
+    }
 
     this.renderRange = [startOutMostBlock.preSibling, endOutMostBlock.nextSibling]
   }
@@ -334,6 +348,10 @@ class ContentState {
   }
 
   isCollapse (cursor = this.cursor) {
+    if (!cursor || !cursor.start || !cursor.end) {
+      return false
+    }
+
     const { start, end } = cursor
     return start.key === end.key && start.offset === end.offset
   }
@@ -554,13 +572,20 @@ class ContentState {
 
   getActiveBlocks () {
     const result = []
-    let block = this.getBlock(this.cursor.start.key)
-    if (block) {
-      result.push(block)
+    if (!this.cursor || !this.cursor.start || !this.cursor.start.key) {
+      return result
     }
+
+    let block = this.getBlock(this.cursor.start.key)
+    if (!block) {
+      return result
+    }
+    result.push(block)
     while (block && block.parent) {
       block = this.getBlock(block.parent)
-      result.push(block)
+      if (block) {
+        result.push(block)
+      }
     }
     return result
   }
@@ -737,8 +762,8 @@ class ContentState {
 
   getPositionReference () {
     const { fontSize, lineHeight } = this.muya.options
-    const { start } = this.cursor
-    const block = this.getBlock(start.key)
+    const { start } = this.cursor || {}
+    const block = start ? this.getBlock(start.key) : null
     const { x, y, width } = selection.getCursorCoords()
     const height = fontSize * lineHeight
     const bottom = y + height

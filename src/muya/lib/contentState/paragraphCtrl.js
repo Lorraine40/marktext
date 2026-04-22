@@ -15,14 +15,22 @@ const getCurrentLevel = type => {
 
 const paragraphCtrl = ContentState => {
   ContentState.prototype.selectionChange = function (cursor) {
-    const { start, end } = cursor || selection.getCursorRange()
+    const cursorRange = cursor || selection.getCursorRange()
+    if (!cursorRange || !cursorRange.start || !cursorRange.end) {
+      return null
+    }
+
+    const { start, end } = cursorRange
     if (!start || !end) {
-      // TODO: Throw an exception and try to fix this later (GH#848).
-      throw new Error('selectionChange: expected cursor but cursor is null.')
+      return null
     }
     const cursorCoords = selection.getCursorCoords()
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return null
+    }
+
     const startParents = this.getParents(startBlock)
     const endParents = this.getParents(endBlock)
     const affiliation = startParents
@@ -43,7 +51,12 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.getCommonParent = function () {
-    const { start, end, affiliation } = this.selectionChange()
+    const selectionChanges = this.selectionChange()
+    if (!selectionChanges) {
+      return { parent: null, startIndex: -1, endIndex: -1 }
+    }
+
+    const { start, end, affiliation } = selectionChanges
     const parent = affiliation.length ? affiliation[0] : null
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
@@ -116,7 +129,12 @@ const paragraphCtrl = ContentState => {
   // TODO: New created nestled list items missing "listType" key and value.
 
   ContentState.prototype.handleListMenu = function (paraType, insertMode) {
-    const { start, end, affiliation } = this.selectionChange(this.cursor)
+    const selectionChanges = this.selectionChange(this.cursor)
+    if (!selectionChanges) {
+      return false
+    }
+
+    const { start, end, affiliation } = selectionChanges
     const { orderListDelimiter, bulletListMarker, preferLooseListItem } = this.muya.options
     const [blockType, listType] = paraType.split('-')
     const isListed = affiliation.slice(0, 3).filter(b => /ul|ol/.test(b.type))
@@ -172,7 +190,13 @@ const paragraphCtrl = ContentState => {
     } else {
       if (start.key === end.key || (start.block.parent && start.block.parent === end.block.parent)) {
         const block = this.getBlock(start.key)
+        if (!block) {
+          return false
+        }
         const paragraph = this.getBlock(block.parent)
+        if (!paragraph) {
+          return false
+        }
         if (listType === 'task') {
           // 1. first update the block to bullet list
           const listItemParagraph = this.updateList(paragraph, 'bullet', undefined, block)
@@ -191,6 +215,9 @@ const paragraphCtrl = ContentState => {
       } else {
         const { parent, startIndex, endIndex } = this.getCommonParent()
         const children = parent ? parent.children : this.blocks
+        if (startIndex < 0 || endIndex < 0) {
+          return false
+        }
         const referBlock = children[endIndex]
         const listWrapper = this.createBlock(listType === 'order' ? 'ol' : 'ul')
         listWrapper.listType = listType
@@ -221,7 +248,12 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.handleLooseListItem = function () {
-    const { affiliation } = this.selectionChange(this.cursor)
+    const selectionChanges = this.selectionChange(this.cursor)
+    if (!selectionChanges) {
+      return
+    }
+
+    const { affiliation } = selectionChanges
     let listContainer = []
     if (affiliation.length >= 1 && /ul|ol/.test(affiliation[0].type)) {
       listContainer = affiliation[0].children
@@ -237,7 +269,12 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.handleCodeBlockMenu = function () {
-    const { start, end, affiliation } = this.selectionChange(this.cursor)
+    const selectionChanges = this.selectionChange(this.cursor)
+    if (!selectionChanges) {
+      return
+    }
+
+    const { start, end, affiliation } = selectionChanges
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
     const startParents = this.getParents(startBlock)
@@ -311,6 +348,9 @@ const paragraphCtrl = ContentState => {
       } else if (!hasFencedCodeBlockParent()) {
         const { parent, startIndex, endIndex } = this.getCommonParent()
         const children = parent ? parent.children : this.blocks
+        if (startIndex < 0 || endIndex < 0) {
+          return
+        }
         const referBlock = children[endIndex]
         const lang = ''
         const preBlock = this.createBlock('pre', {
@@ -357,7 +397,12 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.handleQuoteMenu = function (insertMode) {
-    const { start, end, affiliation } = this.selectionChange(this.cursor)
+    const selectionChanges = this.selectionChange(this.cursor)
+    if (!selectionChanges) {
+      return
+    }
+
+    const { start, end, affiliation } = selectionChanges
     let startBlock = this.getBlock(start.key)
     const isBlockQuote = affiliation.slice(0, 2).filter(b => /blockquote/.test(b.type))
     // change blockquote to paragraph
@@ -381,6 +426,9 @@ const paragraphCtrl = ContentState => {
       } else {
         const { parent, startIndex, endIndex } = this.getCommonParent()
         const children = parent ? parent.children : this.blocks
+        if (startIndex < 0 || endIndex < 0) {
+          return
+        }
         const referBlock = children[endIndex]
         const quoteBlock = this.createBlock('blockquote')
 
@@ -450,8 +498,16 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.updateParagraph = function (paraType, insertMode = false) {
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const block = this.getBlock(start.key)
+    if (!block) {
+      return
+    }
+
     const { text, type } = block
     let needDispatchChange = true
 
@@ -533,6 +589,9 @@ const paragraphCtrl = ContentState => {
 
         const headingStyle = DEFAULT_TURNDOWN_CONFIG.headingStyle
         const parent = this.getParent(block)
+        if (!parent) {
+          return
+        }
         // \u00A0 is &nbsp;
         const [, hash, partText] = /(^ {0,3}#*[ \u00A0]*)([\s\S]*)/.exec(text)
         let newLevel = 0 // 1, 2, 3, 4, 5, 6
@@ -646,10 +705,18 @@ const paragraphCtrl = ContentState => {
   }
 
   ContentState.prototype.insertParagraph = function (location, text = '', outMost = false) {
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     // if cursor is not in one line or paragraph, can not insert paragraph
     if (start.key !== end.key) return
     const block = this.getBlock(start.key)
+    if (!block) {
+      return
+    }
+
     let anchor = null
     if (outMost) {
       anchor = this.findOutMostBlock(block)
@@ -680,9 +747,19 @@ const paragraphCtrl = ContentState => {
 
   // make a dulication of the current block
   ContentState.prototype.duplicate = function () {
-    const { start, end } = this.cursor
-    const startOutmostBlock = this.findOutMostBlock(this.getBlock(start.key))
-    const endOutmostBlock = this.findOutMostBlock(this.getBlock(end.key))
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
+    const startBlock = this.getBlock(start.key)
+    const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
+    const startOutmostBlock = this.findOutMostBlock(startBlock)
+    const endOutmostBlock = this.findOutMostBlock(endBlock)
     if (startOutmostBlock !== endOutmostBlock) {
       // if the cursor is not in one paragraph, just return
       return
@@ -708,12 +785,28 @@ const paragraphCtrl = ContentState => {
     let startOutmostBlock
     if (blockKey) {
       const block = this.getBlock(blockKey)
+      if (!block) {
+        return
+      }
       const firstEditableBlock = this.firstInDescendant(block)
+      if (!firstEditableBlock) {
+        return
+      }
       startOutmostBlock = this.getAnchor(firstEditableBlock)
     } else {
-      const { start, end } = this.cursor
-      startOutmostBlock = this.findOutMostBlock(this.getBlock(start.key))
-      const endOutmostBlock = this.findOutMostBlock(this.getBlock(end.key))
+      const { start, end } = this.cursor || {}
+      if (!start || !end) {
+        return
+      }
+
+      const startBlock = this.getBlock(start.key)
+      const endBlock = this.getBlock(end.key)
+      if (!startBlock || !endBlock) {
+        return
+      }
+
+      startOutmostBlock = this.findOutMostBlock(startBlock)
+      const endOutmostBlock = this.findOutMostBlock(endBlock)
       if (startOutmostBlock !== endOutmostBlock) {
         // if the cursor is not in one paragraph, just return
         return
@@ -746,7 +839,10 @@ const paragraphCtrl = ContentState => {
   ContentState.prototype.isSelectAll = function () {
     const firstTextBlock = this.getFirstBlock()
     const lastTextBlock = this.getLastBlock()
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!firstTextBlock || !lastTextBlock || !start || !end) {
+      return false
+    }
 
     return firstTextBlock.key === start.key &&
       start.offset === 0 &&
@@ -758,6 +854,10 @@ const paragraphCtrl = ContentState => {
   ContentState.prototype.selectAllContent = function () {
     const firstTextBlock = this.getFirstBlock()
     const lastTextBlock = this.getLastBlock()
+    if (!firstTextBlock || !lastTextBlock) {
+      return
+    }
+
     this.cursor = {
       start: {
         key: firstTextBlock.key,
@@ -789,9 +889,17 @@ const paragraphCtrl = ContentState => {
         return this.selectTable(table)
       }
     }
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     // handle selectAll in table.
     if (startBlock.functionType === 'cellContent' && endBlock.functionType === 'cellContent') {
       if (start.key === end.key) {
@@ -941,7 +1049,12 @@ const paragraphCtrl = ContentState => {
         }
 
         // List and quote content is also a problem because it's shown as paragraph.
-        const { affiliation } = this.selectionChange(this.cursor)
+        const selectionChanges = this.selectionChange(this.cursor)
+        if (!selectionChanges) {
+          return ''
+        }
+
+        const { affiliation } = selectionChanges
         const listTypes = affiliation
           .slice(0, 3) // the third entry should be the ul/ol
           .filter(b => /ul|ol/.test(b.type))

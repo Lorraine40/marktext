@@ -148,6 +148,15 @@ const clickCtrl = ContentState => {
       }
     }
     const block = this.getBlock(start.key)
+    const endBlock = this.getBlock(end.key)
+    if (!block || !endBlock) {
+      return
+    }
+    const { start: currentStart, end: currentEnd } = this.cursor || {}
+    if (!currentStart || !currentEnd) {
+      return
+    }
+
     let needRender = false
     // is show format float box?
     if (
@@ -163,8 +172,8 @@ const clickCtrl = ContentState => {
     }
 
     // update '```xxx' to code block when you click other place or use press arrow key.
-    if (block && start.key !== this.cursor.start.key) {
-      const oldBlock = this.getBlock(this.cursor.start.key)
+    if (block && start.key !== currentStart.key) {
+      const oldBlock = this.getBlock(currentStart.key)
       if (oldBlock) {
         needRender = needRender || this.codeBlockUpdate(oldBlock)
       }
@@ -172,8 +181,8 @@ const clickCtrl = ContentState => {
 
     // change active status when paragraph changed
     if (
-      start.key !== this.cursor.start.key ||
-      end.key !== this.cursor.end.key
+      start.key !== currentStart.key ||
+      end.key !== currentEnd.key
     ) {
       needRender = true
     }

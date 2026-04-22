@@ -16,6 +16,10 @@ const codeBlockCtrl = ContentState => {
     }
     const startBlock = this.getBlock(start.key)
     const paragraph = document.querySelector(`#${start.key}`)
+    if (!startBlock) {
+      return { lang: '', paragraph: null }
+    }
+
     let lang = ''
     const { text } = startBlock
     if (startBlock.type === 'span') {
@@ -35,7 +39,15 @@ const codeBlockCtrl = ContentState => {
   }
 
   ContentState.prototype.selectLanguage = function (paragraph, lang) {
+    if (!paragraph) {
+      return
+    }
+
     const block = this.getBlock(paragraph.id)
+    if (!block) {
+      return
+    }
+
     if (lang === 'math' && this.isGitlabCompatibilityEnabled && this.updateMathBlock(block)) {
       return
     }
@@ -49,6 +61,10 @@ const codeBlockCtrl = ContentState => {
    * @param lang Language identifier
    */
   ContentState.prototype.updateCodeLanguage = function (block, lang) {
+    if (!block) {
+      return
+    }
+
     if (!lang || typeof lang !== 'string') {
       console.error('Invalid code block language string:', lang)
 
@@ -93,6 +109,10 @@ const codeBlockCtrl = ContentState => {
    * [codeBlockUpdate if block updated to `pre` return true, else return false]
    */
   ContentState.prototype.codeBlockUpdate = function (block, code = '', lang) {
+    if (!block) {
+      return false
+    }
+
     if (block.type === 'span') {
       block = this.getParent(block)
     }

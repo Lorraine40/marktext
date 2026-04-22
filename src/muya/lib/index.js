@@ -115,6 +115,9 @@ class Muya {
 
   dispatchSelectionChange = () => {
     const selectionChanges = this.contentState.selectionChange()
+    if (!selectionChanges) {
+      return
+    }
 
     this.eventCenter.dispatch('selectionChange', selectionChanges)
   }

@@ -33,6 +33,11 @@ class ClickEvent {
       }
 
       const startBlock = contentState.getBlock(start.key)
+      const endBlock = contentState.getBlock(end.key)
+      if (!startBlock || !endBlock) {
+        return
+      }
+
       const nextTextBlock = contentState.findNextBlockInLocation(startBlock)
       if (
         nextTextBlock && nextTextBlock.key === end.key &&
@@ -47,7 +52,9 @@ class ClickEvent {
           start,
           end: start
         }
-        selection.setCursorRange(contentState.cursor)
+        if (!selection.setCursorRange(contentState.cursor)) {
+          return
+        }
       } else {
         // Commit native cursor position because right-clicking doesn't update the cursor postion.
         contentState.cursor = {
@@ -57,6 +64,10 @@ class ClickEvent {
       }
 
       const sectionChanges = contentState.selectionChange(contentState.cursor)
+      if (!sectionChanges) {
+        return
+      }
+
       eventCenter.dispatch('contextmenu', event, sectionChanges)
     }
     eventCenter.attachDOMEvent(container, 'contextmenu', handler)

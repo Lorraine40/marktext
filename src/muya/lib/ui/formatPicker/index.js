@@ -36,7 +36,7 @@ class FormatPicker extends BaseFloat {
     super.listen()
     eventCenter.subscribe('muya-format-picker', ({ reference, formats }) => {
       if (reference) {
-        this.formats = formats
+        this.formats = formats || []
         setTimeout(() => {
           this.show(reference)
           this.render()
@@ -49,6 +49,7 @@ class FormatPicker extends BaseFloat {
 
   render () {
     const { icons, oldVnode, formatContainer, formats } = this
+    const activeFormats = formats || []
     const children = icons.map(i => {
       let icon
       let iconWrapperSelector
@@ -65,7 +66,7 @@ class FormatPicker extends BaseFloat {
       const iconWrapper = h(iconWrapperSelector, icon)
 
       let itemSelector = `li.item.${i.type}`
-      if (formats.some(f => f.type === i.type || f.type === 'html_tag' && f.tag === i.type)) {
+      if (activeFormats.some(f => f.type === i.type || f.type === 'html_tag' && f.tag === i.type)) {
         itemSelector += '.active'
       }
       return h(itemSelector, {

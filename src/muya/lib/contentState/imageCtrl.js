@@ -11,11 +11,19 @@ const imageCtrl = ContentState => {
       alt = match && match[1] ? match[1] : ''
     }
 
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const { formats } = this.selectionFormats({ start, end })
     const { key, offset: startOffset } = start
     const { offset: endOffset } = end
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     if (
       block.type === 'span' &&
       (
@@ -70,6 +78,10 @@ const imageCtrl = ContentState => {
     } else if (key !== end.key) {
       // Replace multi-line text
       const endBlock = this.getBlock(end.key)
+      if (!endBlock) {
+        return
+      }
+
       const { text } = endBlock
       endBlock.text = text.substring(0, endOffset) + `![${alt}](${srcAndTitle})` + text.substring(endOffset)
       const offset = endOffset + 2
@@ -101,6 +113,10 @@ const imageCtrl = ContentState => {
 
   ContentState.prototype.updateImage = function ({ imageId, key, token }, attrName, attrValue) { // inline/left/center/right
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     const { range } = token
     const { start, end } = range
     const oldText = block.text
@@ -131,6 +147,10 @@ const imageCtrl = ContentState => {
   ContentState.prototype.replaceImage = function ({ key, token }, { alt = '', src = '', title = '' }) {
     const { type } = token
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     const { start, end } = token.range
     const oldText = block.text
     let imageText = ''
@@ -170,6 +190,10 @@ const imageCtrl = ContentState => {
 
   ContentState.prototype.deleteImage = function ({ key, token }) {
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     const oldText = block.text
     const { start, end } = token.range
     const { eventCenter } = this.muya
@@ -190,15 +214,20 @@ const imageCtrl = ContentState => {
     this.selectedImage = imageInfo
     const { key } = imageInfo
     const block = this.getBlock(key)
+    if (!block) {
+      return
+    }
+
     const outMostBlock = this.findOutMostBlock(block)
     this.cursor = {
       start: { key, offset: imageInfo.token.range.end },
       end: { key, offset: imageInfo.token.range.end }
     }
     // Fix #1568
-    const { start } = this.prevCursor
-    const oldBlock = this.findOutMostBlock(this.getBlock(start.key))
-    if (oldBlock.key !== outMostBlock.key) {
+    const { start } = this.prevCursor || {}
+    const oldStartBlock = start ? this.getBlock(start.key) : null
+    const oldBlock = oldStartBlock ? this.findOutMostBlock(oldStartBlock) : null
+    if (oldBlock && oldBlock.key !== outMostBlock.key) {
       this.singleRender(oldBlock, false)
     }
 

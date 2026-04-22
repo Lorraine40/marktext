@@ -185,8 +185,12 @@ const enterCtrl = ContentState => {
       return event.preventDefault()
     }
     let block = this.getBlock(start.key)
-    const { text } = block
     const endBlock = this.getBlock(end.key)
+    if (!block || !endBlock) {
+      return event.preventDefault()
+    }
+
+    const { text } = block
     let parent = this.getParent(block)
 
     event.preventDefault()

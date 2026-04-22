@@ -253,9 +253,14 @@ class Keyboard {
       }
 
       const { anchor, focus, start, end } = selection.getCursorRange()
-      if (!anchor || !focus) {
+      if (!anchor || !focus || !start || !end) {
         return
       }
+      const block = contentState.getBlock(anchor.key)
+      if (!block) {
+        return
+      }
+
       if (
         !this.isComposed
       ) {
@@ -274,7 +279,6 @@ class Keyboard {
         }
       }
 
-      const block = contentState.getBlock(anchor.key)
       if (
         anchor.key === focus.key &&
         anchor.offset !== focus.offset &&

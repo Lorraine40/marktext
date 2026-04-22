@@ -18,8 +18,15 @@ const marktextApi = ContentState => {
   ContentState.prototype._replaceCurrentWordInlineUnsafe = function (word, replacement) {
     // Right clicking on a misspelled word select the whole word by Chromium.
     const { start, end } = selection.getCursorRange()
+    if (!start || !end) {
+      return false
+    }
+
     const cursor = Object.assign({}, { start, end })
     cursor.start.block = this.getBlock(start.key)
+    if (!cursor.start.block) {
+      return false
+    }
 
     if (!validateLineCursor(cursor)) {
       console.warn('Unable to replace word: multiple lines are selected.', JSON.stringify(cursor))

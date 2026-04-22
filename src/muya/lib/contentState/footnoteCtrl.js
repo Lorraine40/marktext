@@ -3,9 +3,17 @@ const FOOTNOTE_REG = /^\[\^([^\^\[\]\s]+?)(?<!\\)\]: /
 /* eslint-enable no-useless-escape */
 const footnoteCtrl = ContentState => {
   ContentState.prototype.updateFootnote = function (block, line) {
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!block || !line || !start || !end) {
+      return null
+    }
+
     const { text } = line
     const match = FOOTNOTE_REG.exec(text)
+    if (!match) {
+      return null
+    }
+
     const footnoteIdentifer = match[1]
     const sectionWrapper = this.createBlock('figure', {
       functionType: 'footnote'
@@ -52,6 +60,10 @@ const footnoteCtrl = ContentState => {
       end: { key, offset }
     }
     const sectionWrapper = this.updateFootnote(newBlock, newBlock.children[0])
+    if (!sectionWrapper) {
+      return
+    }
+
     const id = sectionWrapper.key
     const footnoteEle = document.querySelector(`#${id}`)
     if (footnoteEle) {

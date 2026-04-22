@@ -34,6 +34,10 @@ const copyCutCtrl = ContentState => {
     }
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     startBlock.text = startBlock.text.substring(0, start.offset) + endBlock.text.substring(end.offset)
     if (start.key !== end.key) {
       this.removeBlocks(startBlock, endBlock)
@@ -53,6 +57,10 @@ const copyCutCtrl = ContentState => {
     }
     if (start.key === end.key) {
       const startBlock = this.getBlock(start.key)
+      if (!startBlock) {
+        return { html: '', text: '' }
+      }
+
       const { type, text, functionType } = startBlock
       // Fix issue #942
       if (type === 'span' && functionType === 'codeContent') {

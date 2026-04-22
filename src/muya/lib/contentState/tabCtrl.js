@@ -101,9 +101,21 @@ const tabCtrl = ContentState => {
   }
 
   ContentState.prototype.isIndentableListItem = function () {
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return false
+    }
+
     const startBlock = this.getBlock(start.key)
+    if (!startBlock) {
+      return false
+    }
+
     const parent = this.getParent(startBlock)
+    if (!parent) {
+      return false
+    }
+
     if (parent.type !== 'p' || !parent.parent) {
       return false
     }
@@ -162,12 +174,35 @@ const tabCtrl = ContentState => {
   }
 
   ContentState.prototype.indentListItem = function () {
-    const { start } = this.cursor
+    const { start } = this.cursor || {}
+    if (!start) {
+      return
+    }
+
     const startBlock = this.getBlock(start.key)
+    if (!startBlock) {
+      return
+    }
+
     const parent = this.getParent(startBlock)
+    if (!parent) {
+      return
+    }
+
     const listItem = this.getParent(parent)
+    if (!listItem) {
+      return
+    }
+
     const list = this.getParent(listItem)
+    if (!list) {
+      return
+    }
+
     const prevListItem = this.getPreSibling(listItem)
+    if (!prevListItem) {
+      return
+    }
 
     this.removeBlock(listItem)
 
@@ -190,9 +225,17 @@ const tabCtrl = ContentState => {
   ContentState.prototype.insertTab = function () {
     const tabSize = this.tabSize
     const tabCharacter = String.fromCharCode(160).repeat(tabSize)
-    const { start, end } = this.cursor
+    const { start, end } = this.cursor || {}
+    if (!start || !end) {
+      return
+    }
+
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
+
     if (start.key === end.key && start.offset === end.offset) {
       startBlock.text = startBlock.text.substring(0, start.offset) +
         tabCharacter + endBlock.text.substring(end.offset)
@@ -308,6 +351,9 @@ const tabCtrl = ContentState => {
     }
     const startBlock = this.getBlock(start.key)
     const endBlock = this.getBlock(end.key)
+    if (!startBlock || !endBlock) {
+      return
+    }
 
     if (event.shiftKey && startBlock.functionType !== 'cellContent') {
       const unindentType = this.isUnindentableListItem(startBlock)
