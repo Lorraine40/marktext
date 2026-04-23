@@ -3,11 +3,15 @@ import selection from '../selection'
 import { findNearestParagraph } from '../selection/dom'
 import { getParagraphReference, getImageInfo } from '../utils'
 import { checkEditEmoji } from '../ui/emojis'
+import ImeTextareaProxy from '../imeProxy'
+
+const USE_IME_TEXTAREA_PROXY = true
 
 class Keyboard {
   constructor (muya) {
     this.muya = muya
     this.isComposed = false
+    this.imeProxy = USE_IME_TEXTAREA_PROXY ? new ImeTextareaProxy(muya) : null
     this.shownFloat = new Set()
     this.recordIsComposed()
     this.dispatchEditorState()
@@ -43,8 +47,14 @@ class Keyboard {
     const handler = event => {
       if (event.type === 'compositionstart') {
         this.isComposed = true
+        if (this.imeProxy) {
+          this.imeProxy.begin(event)
+        }
       } else if (event.type === 'compositionend') {
         this.isComposed = false
+        if (this.imeProxy && this.imeProxy.isActive()) {
+          return
+        }
         // Because the compose event will not cause `input` event, So need call `inputHandler` by ourself
         contentState.inputHandler(event)
         eventCenter.dispatch('stateChange')
@@ -61,6 +71,9 @@ class Keyboard {
 
     let timer = null
     const changeHandler = event => {
+      if (this.imeProxy && this.imeProxy.isActive()) {
+        return
+      }
       if (
         event.type === 'keyup' &&
         (event.key === EVENT_KEYS.ArrowUp || event.key === EVENT_KEYS.ArrowDown) &&
@@ -127,6 +140,10 @@ class Keyboard {
     }
 
     const handler = event => {
+      if (this.imeProxy && this.imeProxy.isActive()) {
+        return
+      }
+
       if (event.metaKey || event.ctrlKey) {
         container.classList.add('ag-meta-or-ctrl')
       }
@@ -199,6 +216,10 @@ class Keyboard {
   inputBinding () {
     const { container, eventCenter, contentState } = this.muya
     const inputHandler = event => {
+      if (this.imeProxy && this.imeProxy.isActive()) {
+        return
+      }
+
       if (!this.isComposed) {
         contentState.inputHandler(event)
         this.muya.dispatchChange()
@@ -225,6 +246,10 @@ class Keyboard {
   keyupBinding () {
     const { container, eventCenter, contentState } = this.muya
     const handler = event => {
+      if (this.imeProxy && this.imeProxy.isActive()) {
+        return
+      }
+
       container.classList.remove('ag-meta-or-ctrl')
       // check if edit emoji
       const node = selection.getSelectionStart()
@@ -290,6 +315,12 @@ class Keyboard {
     }
 
     eventCenter.attachDOMEvent(container, 'keyup', handler) // temp use input event
+  }
+
+  destroy () {
+    if (this.imeProxy) {
+      this.imeProxy.destroy()
+    }
   }
 }
 

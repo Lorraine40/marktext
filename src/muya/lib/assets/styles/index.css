@@ -96,6 +96,21 @@ div.ag-show-quick-insert-hint p.ag-paragraph.ag-active > span.ag-paragraph-conte
   word-break: break-word;
 }
 
+.ag-ime-textarea-proxy {
+  position: fixed;
+  z-index: 1000;
+  display: block;
+  box-sizing: border-box;
+  overflow: hidden;
+  resize: none;
+  color: var(--editorColor);
+  background: var(--editorBgColor);
+  border: none;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* TODO: This disables wrapping long lines in code blocks, allowing
    scrolling instead.  Make this contingent on user preference. */
 .ag-code-content {

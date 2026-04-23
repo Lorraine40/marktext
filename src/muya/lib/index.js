@@ -114,15 +114,27 @@ class Muya {
   }
 
   dispatchSelectionChange = () => {
+    if (this.isImeProxyActive()) {
+      return
+    }
+
     const selectionChanges = this.contentState.selectionChange()
 
     this.eventCenter.dispatch('selectionChange', selectionChanges)
   }
 
   dispatchSelectionFormats = () => {
+    if (this.isImeProxyActive()) {
+      return
+    }
+
     const { formats } = this.contentState.selectionFormats()
 
     this.eventCenter.dispatch('selectionFormats', formats)
+  }
+
+  isImeProxyActive () {
+    return !!(this.keyboard && this.keyboard.imeProxy && this.keyboard.imeProxy.isActive())
   }
 
   getMarkdown () {
@@ -446,6 +458,7 @@ class Muya {
   }
 
   destroy () {
+    this.keyboard.destroy()
     this.contentState.clear()
     this.quickInsert.destroy()
     this.codePicker.destroy()
